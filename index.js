@@ -1,56 +1,51 @@
-/**
- * Created by 文琪 on 2015/3/1.
- */
-var redis = require('redis');  
 var moment = require('moment');
+var redis = require('redis');
+
 
 /**
- * 参数
- * appId
- * secret
- * expire 过期时间，单位为秒
- * @param redisOpt
- * 数据库连接参数
-    * port 端口，默认为6379
-    * host 数据库地址，默认为localhost
-    * opt 其他redis参数
+ * @param options
+ * 指定参数。
+        - host redis服务器地址
+        - port redis端口
+        - appId 要保存的token的appId
+        - expire 过期时间(秒)，默认为7000
  */
-var At = function(appId, secret, expire, options){
-    var self = this;
+var At = function (host, port, appId, expire) {
+    this.host = host;
+    this.port = port;
     this.appId = appId;
-    this.secret = secret;
-    this.expire = expire || 7000;
-    this.redisOpt = {
-        port : options.port || 6379,
-        host : options.host || 'localhost',
-        opt  : options.opt || {}
-    };
-    this.keys = {
-        at: self.appId + '.' + self.secret + '.at',
-        expireDate: self.appId + '.' + self.secret + '.expireDate'
-    };
+    this.expire = expire;
+
+    var client = redis.createClient(this.port, this.host, {});
+    client.on("error", function (err) {
+        console.log("Error " + err);
+    });
+    this.client = client;
 };
 
-At.prototype.getToken = function(cb){
+
+// 获取指定的AccessToken
+
+At.prototype.getToken = function (callback) {
     var self = this;
-    var client = redis.createClient(self.redisOpt.port,
-        self.redisOpt.host, self.redisOpt.opt);
-    client(self.keys.expireDate, function(err, date){
-        if(err) cb(err);
-        else if(moment().isBefore(date)) {      // token还在有效期
-            client.get(self.keys.at, cb);
-        } else cb('err');
+    self.client.get(self.appId +'.expire', function(err, date){
+        if(err || !date) callback('err');            
+        else if(moment().isBefore(date)) {                                // 还在有效期内
+            self.client.get(self.appId + '.token', function(err, token){
+                if(err || !token) callback('error');
+                else callback(err, token);
+            });
+        } else callback('err');
     });
 };
 
-At.prototype.saveToken = function(token, cb){
+At.prototype.saveToken = function (token, callback) {
     var self = this;
-    var client = redis.createClient(self.redisOpt.port,
-        self.redisOpt.host, self.redisOpt.opt);
-    client.set(self.keys.at, token);
-    client.set(self.keys.expireDate, moment().add(self.expire, 's'));
-    cb(null, token);
+    self.expire = self.expire || 7000;
+    
+    self.client.set(self.appId + '.token', token);
+    self.client.set(self.appId + '.expire', moment().add(self.expire, 's'));
+    callback(null, token);
 }
-
 
 module.exports = At;

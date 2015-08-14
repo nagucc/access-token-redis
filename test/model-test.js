@@ -3,13 +3,6 @@
 /* global describe */
 /* global process */
 var should = require("should");
-var MongoClient = require('mongodb').MongoClient,
-    ObjectID = require('mongodb').ObjectID;
-
-
-
-// 设置环境变量，读取config
-process.env.NODE_ENV = 'development';
 
 
 
@@ -50,7 +43,7 @@ describe("AccessToken model test", function() {
         }, function (err, token) {
             should.not.exist(err);
             should.exist(token);
-            token.should.eql('token');
+            token.should.eql('token');
             done();
         });
     });
