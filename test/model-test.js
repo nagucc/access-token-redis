@@ -25,7 +25,7 @@ describe("AccessToken model test", function() {
     });
 
     it('getToken.获取正确的的token', function (done) {
-        Model.getToken(function (err, token) {
+        at.getToken(function (err, token) {
             should.not.exist(err);
             should.exist(token);
             token.should.eql('token');
