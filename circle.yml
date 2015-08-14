@@ -1,17 +1,13 @@
 machine:
   services:
     - docker
+    - redis
   node:
     version: 0.10.22
 dependencies:
   override:
-    - docker run -itd -p 6379:6379 redis
     - npm install -g mocha
     - npm install
 test:
   override:
-    - sleep 20
-    - curl http://127.0.0.1:7474
-    - sleep 10
-    - curl http://127.0.0.1:7474
-    - NEO_HOST=http://127.0.0.1:7474 npm test
+    - npm test

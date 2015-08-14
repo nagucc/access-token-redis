@@ -3,49 +3,33 @@
 /* global describe */
 /* global process */
 var should = require("should");
+var At = require('../index');
 
 
-
-// 初始化需要测试的model
-
-var Model = {};
+var at = new At('localhost', 6379, 'appId', 7000);
 
 describe("AccessToken model test", function() {
-	before(function (done) {
-        
-	});
 
     it('getToken.获取空的或过期的token', function (done) {
-        Model.getToken({
-            appId: 'appId',
-            appSecret: 'secret'
-        }, function (err, token) {
+        at.getToken(function (err, token) {
             should.exist(err);
             done();
         });
     });
 
     it('saveToken.设置token', function (done) {
-        Model.saveToken({
-            appId: 'appId',
-            appSecret: 'secret',
-            expire: 10
-        }, 'token', function (err) {
+        at.saveToken('token', function (err) {
             should.not.exist(err);
             done();
         });
     });
 
     it('getToken.获取正确的的token', function (done) {
-        Model.getToken({
-            appId: 'appId',
-            appSecret: 'secret'
-        }, function (err, token) {
+        Model.getToken(function (err, token) {
             should.not.exist(err);
             should.exist(token);
-            token.should.eql('token');
+            token.should.eql('token');
             done();
         });
     });
-
 });
