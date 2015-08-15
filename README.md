@@ -15,16 +15,20 @@
 ```
 var API = require('wechat-enterprise-api');
 
+var redis_host = 'localhost';
+var redis_prot = 6379;
+var appId = 'your appId';
+var expire_time = 7000;
 var AccessToken = require('access-token-redis'),
-    At = new AccessToken('your appId', 'your secret', 7000, {
-        port: 6379,
-        host: 'localhost',
-        opt: {}
+    at = new AccessToken(redis_host, redis_port, appId, expire_time);
+
+var wxapi = new API(options.corpId, options.secret, options.agentId,
+    function(callback){                     // 获取数据库中保存的access_token
+        at.getToken(callback);
+    },
+    function(token, callback){              // 保存access_token到数据库中
+        at.saveToken(token, callback);
     });
-var wxapi = new API('your appId', 'your secret', 0,
-    At.getToken,                     // 获取数据库中保存的access_token
-    At.saveToken                     // 保存access_token到数据库中
-);
 
 ```
 
@@ -33,12 +37,14 @@ var wxapi = new API('your appId', 'your secret', 0,
 ### 初始化
 
 ```
+
+var redis_host = 'localhost';           // redis 服务器host
+var redis_prot = 6379;                  // redis端口
+var appId = 'your appId';               // app id
+var expire_time = 7000;                 // Access token 的保存时间（单位：秒），默认7000
+
 var AccessToken = require('access-token-redis'),
-    At = new AccessToken('your appId', 'your secret', 7000, {
-        port: 6379,
-        host: 'localhost',
-        opt: {}
-    });
+    at = new AccessToken(redis_host, redis_port, appId, expire_time);
     
 ```
 
@@ -47,11 +53,18 @@ var AccessToken = require('access-token-redis'),
 
 ### 读取access_token
 
-`AccessToken.getToken(callback)`
+`getToken(callback)` 参数：
+    - callback 回调函数
+        - err
+        - token
 
 
 
 ### 保存access_token
 
-`AccessToken.saveToken(token, callback);`
+`saveToken(token, callback)` 参数：
+    - token
+    - callback
+        - err
+        - token
 
