@@ -16,11 +16,7 @@ var At = function (host, port, appId, expire) {
     this.appId = appId;
     this.expire = expire;
 
-    var client = redis.createClient(this.port, this.host, {});
-    client.on("error", function (err) {
-        console.log("Error " + err);
-    });
-    this.client = client;
+    this.client = redis.createClient(this.port, this.host, {});
 };
 
 
@@ -29,22 +25,27 @@ var At = function (host, port, appId, expire) {
 At.prototype.getToken = function (callback) {
     var self = this;
     self.client.get(self.appId +'.expire', function(err, date){
-        if(err || !date) callback('err');            
-        else if(moment().isBefore(date)) {                                // 还在有效期内
+        if(err) callback(err);                                                      // redis 发生错误
+        else if(date && moment().isBefore(moment(date, 'YYYY-MM-DD HH:mm:ss'))) {        // 还在有效期内
+            console.log('date: ' + date);
             self.client.get(self.appId + '.token', function(err, token){
-                if(err || !token) callback('error');
-                else callback(err, token);
+                if(err || !token) callback(err || 'token is not valid');
+                else {
+                    console.log('token:' + token);
+                    callback(err, JSON.parse(token));
+                }
             });
-        } else callback('err');
+        } else callback();
     });
 };
 
 At.prototype.saveToken = function (token, callback) {
     var self = this;
     self.expire = self.expire || 7000;
-    
-    self.client.set(self.appId + '.token', token);
-    self.client.set(self.appId + '.expire', moment().add(self.expire, 's'));
+    console.log('token will save: ' + JSON.stringify(token))
+    self.client.set(self.appId + '.token', JSON.stringify(token));
+    self.client.set(self.appId + '.expire', moment().add(self.expire, 's').format('YYYY-MM-DD HH:mm:ss'));
+    console.log('expire date: ' + moment().add(self.expire, 's').format('YYYY-MM-DD HH:mm:ss'));
     callback(null, token);
 }
 
