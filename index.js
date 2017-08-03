@@ -1,6 +1,7 @@
 var moment = require('moment');
 var redis = require('redis');
 
+var client;
 
 /**
  * @param options
@@ -16,7 +17,15 @@ var At = function (host, port, appId, expire) {
     this.appId = appId;
     this.expire = expire;
 
-    this.client = redis.createClient(this.port, this.host, {});
+    if (!client) {
+        console.log('init redis connection');
+        client = redis.createClient(this.port, this.host, {});
+        client.on("error", function (err) {
+            console.error(err.stack || err);
+            client = null;
+        });
+    }
+    this.client = client;
 };
 
 

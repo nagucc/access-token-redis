@@ -6,7 +6,7 @@ var should = require("should");
 var At = require('../index');
 
 
-var at = new At('localhost', 6379, 'appId', 7000);
+var at = new At('localhost', 32768, 'appId', 7000);
 
 describe("AccessToken model test", function() {
 
